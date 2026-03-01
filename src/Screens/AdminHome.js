@@ -11,6 +11,7 @@ import {
   ActivityIndicator,
   RefreshControl
 } from "react-native";
+import { LinearGradient } from "expo-linear-gradient";
 import BASE_URL from "../Api/Api";
 
 if (Platform.OS === "android") {
@@ -67,14 +68,17 @@ export default function AdminHome() {
   }
 
   return (
+  <LinearGradient
+    colors={["#0F2027", "#1c1f2b", "#111827"]}
+    style={{ flex: 1 }}
+  >
     <ScrollView
       contentContainerStyle={styles.container}
       refreshControl={
-        <RefreshControl refreshing={refreshing} onRefresh={onRefresh} />
+        <RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor="#fff" />
       }
     >
       {sortedEvents.map((event, index) => {
-
         const expanded = active === index;
 
         return (
@@ -83,56 +87,155 @@ export default function AdminHome() {
             activeOpacity={0.9}
             onPress={() => handlePress(index)}
           >
-            <View style={[styles.card, expanded && styles.activeCard]}>
-              <Text style={styles.title}>{event.title}</Text>
+           <View style={[styles.card, expanded && styles.activeCard]}>
 
-              {!expanded && (
-                <>
-                  <Text>{event.shortDesc}</Text>
-                  <Text>Deadline: {event.deadline}</Text>
-                </>
-              )}
+  {/* TITLE ROW */}
+  <View style={styles.titleRow}>
+    <Text style={styles.title}>{event.title}</Text>
 
-              {expanded && (
-                <>
-                  <Text>{event.longDesc}</Text>
-                  <Text>{event.outcome}</Text>
-                  <Text>Deadline: {event.deadline}</Text>
-                </>
-              )}
-            </View>
+    <View style={styles.badge}>
+      <Text style={styles.badgeText}>
+        {event.registered || 0}
+      </Text>
+    </View>
+  </View>
+
+  {!expanded && (
+    <>
+      <Text style={styles.shortDesc}>{event.shortDesc}</Text>
+
+      <View style={styles.deadlinePill}>
+        <Text style={styles.deadlineText}>
+         {new Date(event.deadline).toLocaleDateString()}
+        </Text>
+      </View>
+    </>
+  )}
+
+  {expanded && (
+    <View style={styles.expandedContainer}>
+      <Text style={styles.longDesc}>{event.longDesc}</Text>
+
+      <View style={styles.outcomeBox}>
+        <Text style={styles.outcomeText}>
+          {event.outcome}
+        </Text>
+      </View>
+
+      <View style={styles.deadlinePillExpanded}>
+        <Text style={styles.deadlineText}>
+          Deadline: {new Date(event.deadline).toLocaleDateString()}
+        </Text>
+      </View>
+    </View>
+  )}
+</View>
           </TouchableOpacity>
         );
-
       })}
     </ScrollView>
-  );
+  </LinearGradient>
+);
 }
 
 const styles = StyleSheet.create({
   container: {
-    padding: 16,
-    backgroundColor: "#f4f6fa"
+    padding: 20,
+    paddingTop: 30,
   },
+
+  card: {
+    backgroundColor: "rgba(255,255,255,0.05)",
+    borderRadius: 20,
+    padding: 20,
+    marginBottom: 20,
+    borderWidth: 1,
+    borderColor: "rgba(255,255,255,0.08)",
+  },
+
+  activeCard: {
+    backgroundColor: "rgba(255,255,255,0.08)",
+    borderColor: "#3b82f6",
+  },
+
+  title: {
+    fontSize: 20,
+    fontWeight: "600",
+    color: "#fff",
+    marginBottom: 8,
+  },
+
+  shortDesc: {
+    color: "#cbd5e1",
+    marginBottom: 10,
+  },
+
+  longDesc: {
+    color: "#e5e7eb",
+    marginBottom: 12,
+    lineHeight: 20,
+  },
+
+  expandedContainer: {
+    marginTop: 10,
+  },
+
+  outcomeBox: {
+    backgroundColor: "rgba(59,130,246,0.1)",
+    padding: 12,
+    borderRadius: 12,
+    marginBottom: 12,
+  },
+
+  outcomeText: {
+    color: "#93c5fd",
+  },
+
+  deadlinePill: {
+    alignSelf: "flex-start",
+    backgroundColor: "rgba(255,255,255,0.08)",
+    paddingHorizontal: 12,
+    paddingVertical: 6,
+    borderRadius: 20,
+  },
+
+  deadlinePillExpanded: {
+    alignSelf: "flex-start",
+    backgroundColor: "rgba(59,130,246,0.15)",
+    paddingHorizontal: 14,
+    paddingVertical: 8,
+    borderRadius: 20,
+  },
+
+  deadlineText: {
+    color: "#fff",
+    fontSize: 12,
+  },
+
+badge: {
+  backgroundColor: "rgba(34,197,94,0.15)",
+  paddingHorizontal: 12,
+  paddingVertical: 6,
+  borderRadius: 20,
+  borderWidth: 1,
+  borderColor: "rgba(34,197,94,0.4)",
+},
+
+badgeText: {
+  color: "#22c55e",
+  fontSize: 12,
+  fontWeight: "600",
+},
   loaderContainer: {
     flex: 1,
     justifyContent: "center",
-    alignItems: "center"
+    alignItems: "center",
+    backgroundColor: "#0F2027"
   },
-  card: {
-    backgroundColor: "#fff",
-    borderRadius: 16,
-    padding: 16,
-    marginBottom: 16,
-    elevation: 4
-  },
-  activeCard: {
-    transform: [{ scale: 1.05 }],
-    elevation: 10
-  },
-  title: {
-    fontSize: 18,
-    fontWeight: "bold",
-    marginBottom: 6
-  }
+  titleRow: {
+  flexDirection: "row",
+  justifyContent: "space-between",
+  alignItems: "center",
+  marginBottom: 10,
+},
 });

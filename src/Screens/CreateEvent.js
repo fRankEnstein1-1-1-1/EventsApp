@@ -6,8 +6,14 @@ import {
   TouchableOpacity,
   StyleSheet,
   ScrollView,
-  Alert
+  Alert,
+  KeyboardAvoidingView,
+  Platform,
+  TouchableWithoutFeedback,
+  Keyboard
 } from "react-native";
+
+import { LinearGradient } from "expo-linear-gradient";
 import BASE_URL from "../Api/Api";
 export default function CreateEvent() {
 
@@ -64,108 +70,138 @@ export default function CreateEvent() {
     }
   }
 
-  return(
-    <ScrollView contentContainerStyle={styles.container}>
+ return (
+  <KeyboardAvoidingView
+    style={{ flex: 1 }}
+    behavior={Platform.OS === "ios" ? "padding" : "height"}
+  >
+    <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
+      <LinearGradient
+        colors={["#0f172a", "#111827", "#0b1120"]}
+        style={{ flex: 1 }}
+      >
+        <ScrollView
+          contentContainerStyle={styles.container}
+          keyboardShouldPersistTaps="handled"
+        >
+          <View style={styles.card}>
 
-      <View style={styles.card}>
+            <Text style={styles.heading}>Create Event</Text>
 
-        <Text style={styles.heading}>Create Event</Text>
+            <TextInput
+              style={styles.input}
+              placeholder="Event Title"
+              placeholderTextColor="#9ca3af"
+              value={title}
+              onChangeText={setTitle}
+            />
 
-        <TextInput
-          style={styles.input}
-          placeholder="Title"
-          value={title}
-          onChangeText={setTitle}
-        />
+            <TextInput
+              style={styles.input}
+              placeholder="Short Description"
+              placeholderTextColor="#9ca3af"
+              value={shortDesc}
+              onChangeText={setShortDesc}
+            />
 
-        <TextInput
-          style={styles.input}
-          placeholder="Short Description"
-          value={shortDesc}
-          onChangeText={setShortDesc}
-        />
+            <TextInput
+              style={[styles.input, styles.multiline]}
+              placeholder="Long Description"
+              placeholderTextColor="#9ca3af"
+              value={longDesc}
+              onChangeText={setLongDesc}
+              multiline
+            />
 
-        <TextInput
-          style={[styles.input, styles.multiline]}
-          placeholder="Long Description"
-          value={longDesc}
-          onChangeText={setLongDesc}
-          multiline
-        />
+            <TextInput
+              style={[styles.input, styles.multiline]}
+              placeholder="Expected Outcome"
+              placeholderTextColor="#9ca3af"
+              value={outcome}
+              onChangeText={setOutcome}
+              multiline
+            />
 
-        <TextInput
-          style={[styles.input, styles.multiline]}
-          placeholder="Outcome"
-          value={outcome}
-          onChangeText={setOutcome}
-          multiline
-        />
+            <TextInput
+              style={styles.input}
+              placeholder="Deadline (YYYY-MM-DD)"
+              placeholderTextColor="#9ca3af"
+              value={deadline}
+              onChangeText={setDeadline}
+            />
 
-        <TextInput
-          style={styles.input}
-          placeholder="Deadline (YYYY-MM-DD)"
-          value={deadline}
-          onChangeText={setDeadline}
-        />
+            <TouchableOpacity activeOpacity={0.85} onPress={createEvent}>
+              <LinearGradient
+                colors={["#3b82f6", "#6366f1"]}
+                start={{ x: 0, y: 0 }}
+                end={{ x: 1, y: 1 }}
+                style={styles.button}
+              >
+                <Text style={styles.buttonText}>Create Event</Text>
+              </LinearGradient>
+            </TouchableOpacity>
 
-        <TouchableOpacity style={styles.button} onPress={createEvent}>
-          <Text style={styles.buttonText}>Create Event</Text>
-        </TouchableOpacity>
-
-      </View>
-
-    </ScrollView>
-  )
+          </View>
+        </ScrollView>
+      </LinearGradient>
+    </TouchableWithoutFeedback>
+  </KeyboardAvoidingView>
+);
 }
 
 const styles = StyleSheet.create({
 
-  container:{
-    flexGrow:1,
-    justifyContent:"center",
-    padding:20,
-    backgroundColor:"#f5f7fa"
+  container: {
+    flexGrow: 1,
+    justifyContent: "center",
+    padding: 24,
   },
 
-  card:{
-    backgroundColor:"#fff",
-    borderRadius:20,
-    padding:20,
-    elevation:6
+  card: {
+    backgroundColor: "rgba(255,255,255,0.05)",
+    borderRadius: 24,
+    padding: 24,
+    borderWidth: 1,
+    borderColor: "rgba(255,255,255,0.08)",
   },
 
-  heading:{
-    fontSize:22,
-    fontWeight:"bold",
-    marginBottom:20,
-    textAlign:"center"
+  heading: {
+    fontSize: 24,
+    fontWeight: "600",
+    marginBottom: 25,
+    textAlign: "center",
+    color: "#ffffff",
+    letterSpacing: 0.5,
   },
 
-  input:{
-    backgroundColor:"#f1f3f6",
-    padding:14,
-    borderRadius:12,
-    marginBottom:15,
-    fontSize:14
+  input: {
+    backgroundColor: "rgba(255,255,255,0.08)",
+    padding: 16,
+    borderRadius: 16,
+    marginBottom: 18,
+    fontSize: 14,
+    color: "#ffffff",
+    borderWidth: 1,
+    borderColor: "rgba(255,255,255,0.08)",
   },
 
-  multiline:{
-    minHeight:80,
-    textAlignVertical:"top"
+  multiline: {
+    minHeight: 100,
+    textAlignVertical: "top",
   },
 
-  button:{
-    backgroundColor:"#3b82f6",
-    padding:16,
-    borderRadius:14,
-    alignItems:"center",
-    marginTop:10
+  button: {
+    padding: 18,
+    borderRadius: 18,
+    alignItems: "center",
+    marginTop: 10,
   },
 
-  buttonText:{
-    color:"#fff",
-    fontSize:16,
-    fontWeight:"bold"
-  }
+  buttonText: {
+    color: "#ffffff",
+    fontSize: 16,
+    fontWeight: "600",
+    letterSpacing: 0.5,
+  },
 
 });

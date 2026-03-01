@@ -1,3 +1,4 @@
+import AsyncStorage from "@react-native-async-storage/async-storage";
 import React, { useState, useEffect } from "react";
 import {
   View,
@@ -11,6 +12,7 @@ import {
   Alert,
   ActivityIndicator
 } from "react-native";
+import { LinearGradient } from "expo-linear-gradient";
 import BASE_URL from "../Api/Api";
 
 const API = BASE_URL;
@@ -24,10 +26,23 @@ export default function StudentHome(){
   const [events,setEvents] = useState([])
   const [active,setActive] = useState(null)
   const [loading,setLoading] = useState(true)
+  const [registeredEvents,setRegisteredEvents] = useState([])
 
   useEffect(()=>{
     fetchEvents()
+    loadRegisteredEvents()
   },[])
+
+const loadRegisteredEvents = async ()=>{
+  try{
+    const data = await AsyncStorage.getItem("registeredEvents")
+    if(data){
+      setRegisteredEvents(JSON.parse(data))
+    }
+  }catch(err){
+    console.log("AsyncStorage load error",err)
+  }
+}
 
   const fetchEvents = async ()=>{
 
@@ -52,28 +67,44 @@ export default function StudentHome(){
 
   }
 
-  const registerEvent = async (eventId)=>{
+const registerEvent = async (eventId)=>{
 
-    try{
-      await fetch(API,{
-        method:"POST",
-        headers:{ "Content-Type":"application/json"},
-        body:JSON.stringify({
-          type:"registerEvent",
-          eventId,
-          email:"student@email.com"
-        })
-      })
-
-      Alert.alert("Success","Registered Successfully ")
-      fetchEvents()
-
-    }catch(err){
-      Alert.alert("Error","Something went wrong")
-    }
-
+  if(registeredEvents.includes(eventId)){
+    Alert.alert("Already Registered","You have already registered for this event")
+    return
   }
 
+  try{
+
+    const res = await fetch(API,{
+      method:"POST",
+      headers:{ "Content-Type":"application/json"},
+      body:JSON.stringify({
+        type:"registerEvent",
+        eventId,
+        email:"student@email.com"
+      })
+    })
+
+    const updated = [...registeredEvents,eventId]
+    setRegisteredEvents(updated)
+
+    try{
+      await AsyncStorage.setItem(
+        "registeredEvents",
+        JSON.stringify(updated)
+      )
+    }catch(storageError){
+      console.log("Storage error",storageError)
+    }
+
+    Alert.alert("Success","Registered Successfully")
+
+  }catch(err){
+    console.log(err)
+    Alert.alert("Error","Registration failed")
+  }
+}
   const handlePress = (index)=>{
     LayoutAnimation.easeInEaseOut()
     setActive(active === index ? null : index)
@@ -88,45 +119,85 @@ export default function StudentHome(){
     )
   }
 
-  return(
+  return (
+  <LinearGradient
+    colors={["#0f172a", "#111827", "#0b1120"]}
+    style={{ flex: 1 }}
+  >
     <ScrollView contentContainerStyle={styles.container}>
 
-      {events.map((event,index)=>{
+      {events.map((event, index) => {
 
-        const expanded = active === index
+        const expanded = active === index;
+        const isRegistered = registeredEvents.includes(event.eventId);
 
-        return(
+        return (
           <TouchableOpacity
             key={index}
             activeOpacity={0.9}
-            onPress={()=>handlePress(index)}
+            onPress={() => handlePress(index)}
           >
             <View style={[styles.card, expanded && styles.activeCard]}>
 
-              <Text style={styles.title}>{event.title}</Text>
+              {/* TITLE ROW */}
+              <View style={styles.titleRow}>
+                <Text style={styles.title}>{event.title}</Text>
+
+                {isRegistered && (
+                  <View style={styles.registeredBadge}>
+                    <Text style={styles.registeredText}>✓</Text>
+                  </View>
+                )}
+              </View>
 
               {!expanded && (
                 <>
                   <Text style={styles.short}>{event.shortDesc}</Text>
-                  <Text style={styles.meta}>
-                    Deadline: {event.deadline}
-                  </Text>
+
+                  <View style={styles.deadlinePill}>
+                    <Text style={styles.deadlineText}>
+                  {new Date(event.deadline).toLocaleDateString()}
+                    </Text>
+                  </View>
                 </>
               )}
 
               {expanded && (
                 <View style={styles.expandedSection}>
+
                   <Text style={styles.long}>{event.longDesc}</Text>
-                  <Text style={styles.outcome}>{event.outcome}</Text>
-                  <Text style={styles.meta}>
-                    Deadline: {event.deadline}
-                  </Text>
+
+                  <View style={styles.outcomeBox}>
+                    <Text style={styles.outcome}>
+                      {event.outcome}
+                    </Text>
+                  </View>
+
+                  <View style={styles.deadlinePillExpanded}>
+                    <Text style={styles.deadlineText}>
+                      Deadline: {new Date(event.deadline).toLocaleDateString()}
+                    </Text>
+                  </View>
 
                   <TouchableOpacity
-                    style={styles.button}
-                    onPress={()=>registerEvent(event.eventId)}
+                    activeOpacity={0.85}
+                    disabled={isRegistered}
+                    onPress={() => registerEvent(event.eventId)}
                   >
-                    <Text style={styles.buttonText}>Register</Text>
+                    <LinearGradient
+                      colors={
+                        isRegistered
+                          ? ["#6b7280", "#6b7280"]
+                          : ["#3b82f6", "#6366f1"]
+                      }
+                      style={styles.button}
+                    >
+                      <Text style={styles.buttonText}>
+                        {isRegistered
+                          ? "Already Registered"
+                          : "Register"}
+                      </Text>
+                    </LinearGradient>
                   </TouchableOpacity>
 
                 </View>
@@ -134,82 +205,135 @@ export default function StudentHome(){
 
             </View>
           </TouchableOpacity>
-        )
+        );
       })}
 
     </ScrollView>
-  )
+  </LinearGradient>
+);
 }
 
 const styles = StyleSheet.create({
 
-  container:{
-    padding:16,
-    backgroundColor:"#f4f6fa"
+  container: {
+    padding: 24,
+    paddingTop: 30,
   },
 
-  loader:{
-    flex:1,
-    justifyContent:"center",
-    alignItems:"center"
+  loader: {
+    flex: 1,
+    justifyContent: "center",
+    alignItems: "center",
+    backgroundColor: "#0f172a"
   },
 
-  card:{
-    backgroundColor:"#fff",
-    borderRadius:18,
-    padding:16,
-    marginBottom:16,
-    elevation:4
+  card: {
+    backgroundColor: "rgba(255,255,255,0.05)",
+    borderRadius: 22,
+    padding: 20,
+    marginBottom: 20,
+    borderWidth: 1,
+    borderColor: "rgba(255,255,255,0.08)",
   },
 
-  activeCard:{
-    transform:[{ scale:1.04 }],
-    elevation:10
+  activeCard: {
+    backgroundColor: "rgba(255,255,255,0.08)",
+    borderColor: "#3b82f6",
   },
 
-  title:{
-    fontSize:18,
-    fontWeight:"bold",
-    marginBottom:6
+  titleRow: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
+    marginBottom: 10,
   },
 
-  short:{
-    fontSize:14,
-    color:"#555"
+  title: {
+    fontSize: 18,
+    fontWeight: "600",
+    color: "#ffffff",
+    flex: 1,
+    marginRight: 10,
   },
 
-  long:{
-    fontSize:14,
-    marginVertical:8
+  short: {
+    fontSize: 14,
+    color: "#cbd5e1",
+    marginBottom: 12,
+    lineHeight: 18,
   },
 
-  outcome:{
-    fontStyle:"italic",
-    marginBottom:6,
-    color:"#444"
+  long: {
+    fontSize: 14,
+    color: "#e5e7eb",
+    marginBottom: 14,
+    lineHeight: 20,
   },
 
-  meta:{
-    fontSize:13,
-    color:"#777",
-    marginTop:4
+  outcomeBox: {
+    backgroundColor: "rgba(59,130,246,0.12)",
+    padding: 12,
+    borderRadius: 14,
+    marginBottom: 14,
   },
 
-  expandedSection:{
-    marginTop:10
+  outcome: {
+    color: "#93c5fd",
+    fontStyle: "italic",
   },
 
-  button:{
-    marginTop:12,
-    backgroundColor:"#3b82f6",
-    padding:12,
-    borderRadius:12,
-    alignItems:"center"
+  deadlinePill: {
+    alignSelf: "flex-start",
+    backgroundColor: "rgba(255,255,255,0.08)",
+    paddingHorizontal: 14,
+    paddingVertical: 6,
+    borderRadius: 20,
   },
 
-  buttonText:{
-    color:"#fff",
-    fontWeight:"bold"
-  }
+  deadlinePillExpanded: {
+    alignSelf: "flex-start",
+    backgroundColor: "rgba(59,130,246,0.18)",
+    paddingHorizontal: 14,
+    paddingVertical: 8,
+    borderRadius: 20,
+    marginBottom: 16,
+  },
+
+  deadlineText: {
+    color: "#ffffff",
+    fontSize: 12,
+    fontWeight: "500",
+  },
+
+  registeredBadge: {
+    backgroundColor: "rgba(34,197,94,0.2)",
+    paddingHorizontal: 10,
+    paddingVertical: 4,
+    borderRadius: 20,
+    borderWidth: 1,
+    borderColor: "rgba(34,197,94,0.4)",
+  },
+
+  registeredText: {
+    color: "#22c55e",
+    fontWeight: "600",
+    fontSize: 12,
+  },
+
+  expandedSection: {
+    marginTop: 10,
+  },
+
+  button: {
+    padding: 16,
+    borderRadius: 16,
+    alignItems: "center",
+  },
+
+  buttonText: {
+    color: "#ffffff",
+    fontWeight: "600",
+    fontSize: 15,
+  },
 
 });
