@@ -21,34 +21,34 @@ export default function SignUp({ navigation }) {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
 
-  const handleSignup = async () => {
-    try {
-      const res = await fetch(BASE_URL, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          type: "signup",
-          userId: "U" + Date.now(),
-          name,
-          role,
-          email,
-          password,
-        }),
-      });
+const handleSignup = async () => {
+  try {
+    const res = await fetch(BASE_URL, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        type: "signup",
+        userId: "U" + Date.now(),
+        name,
+        role,
+        email,
+        password,
+      }),
+    });
 
-      const text = await res.text();
-      const data = JSON.parse(text);
+    const data = await res.json();
 
-      if (data.status === "success") {
-        alert("Signup Successful!");
-        navigation.navigate("Login");
-      }
-    } catch (error) {
-      console.log(error);
+    if (data.status === "success") {
+alert("Signup Successful!");
+navigation.navigate("Login");
     }
-  };
+
+  } catch (error) {
+    console.log(error);
+  }
+};
 
   return (
      <KeyboardAvoidingView

@@ -10,19 +10,21 @@ import { LinearGradient } from "expo-linear-gradient";
 import BASE_URL from "../Api/Api"
 const API=BASE_URL
 
-export default function StudentRegistered(){
-
+export default function StudentRegistered({route}){
+const user = route?.params?.user;
   const [events,setEvents] = useState([])
   const [loading,setLoading] = useState(true)
 
-  useEffect(()=>{
-    fetchRegistered()
-  },[])
-
+useEffect(() => {
+  if (!user) return;
+  fetchRegistered();
+}, [user]);
   const fetchRegistered = async ()=>{
 
     try{
-      const res = await fetch(API+"?action=registered&email=student@email.com")
+    const res = await fetch(
+  API + `?action=registered&email=${user.email}`
+);
       const data = await res.json()
 
       // descending irder mein sort ( acc. date )

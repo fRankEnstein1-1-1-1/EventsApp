@@ -21,8 +21,9 @@ if (Platform.OS === "android") {
   UIManager.setLayoutAnimationEnabledExperimental?.(true);
 }
 
-export default function StudentHome(){
-
+export default function StudentHome({route}){
+  const user = route?.params?.user;
+  
   const [events,setEvents] = useState([])
   const [active,setActive] = useState(null)
   const [loading,setLoading] = useState(true)
@@ -33,16 +34,18 @@ export default function StudentHome(){
     loadRegisteredEvents()
   },[])
 
-const loadRegisteredEvents = async ()=>{
-  try{
-    const data = await AsyncStorage.getItem("registeredEvents")
-    if(data){
-      setRegisteredEvents(JSON.parse(data))
+const loadRegisteredEvents = async () => {
+  try {
+    const data = await AsyncStorage.getItem(
+      `registeredEvents_${user.email}`
+    );
+    if (data) {
+      setRegisteredEvents(JSON.parse(data));
     }
-  }catch(err){
-    console.log("AsyncStorage load error",err)
+  } catch (err) {
+    console.log("AsyncStorage load error", err);
   }
-}
+};
 
   const fetchEvents = async ()=>{
 
@@ -67,48 +70,56 @@ const loadRegisteredEvents = async ()=>{
 
   }
 
-const registerEvent = async (eventId)=>{
+const registerEvent = async (eventId) => {
 
-  if(registeredEvents.includes(eventId)){
-    Alert.alert("Already Registered","You have already registered for this event")
-    return
+  if (registeredEvents.includes(eventId)) {
+    Alert.alert("Already Registered", "You have already registered for this event");
+    return;
   }
 
-  try{
+  try {
 
-    const res = await fetch(API,{
-      method:"POST",
-      headers:{ "Content-Type":"application/json"},
-      body:JSON.stringify({
-        type:"registerEvent",
+    const res = await fetch(API, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        type: "registerEvent",
         eventId,
-        email:"student@email.com"
+        email: user.email   
       })
-    })
+    });
 
-    const updated = [...registeredEvents,eventId]
-    setRegisteredEvents(updated)
+    const updated = [...registeredEvents, eventId];
+    setRegisteredEvents(updated);
 
-    try{
+    try {
       await AsyncStorage.setItem(
-        "registeredEvents",
+        `registeredEvents_${user.email}`,   
         JSON.stringify(updated)
-      )
-    }catch(storageError){
-      console.log("Storage error",storageError)
+      );
+    } catch (storageError) {
+      console.log("Storage error", storageError);
     }
 
-    Alert.alert("Success","Registered Successfully")
+    Alert.alert("Success", "Registered Successfully");
 
-  }catch(err){
-    console.log(err)
-    Alert.alert("Error","Registration failed")
+  } catch (err) {
+    console.log(err);
+    Alert.alert("Error", "Registration failed");
   }
-}
+};
   const handlePress = (index)=>{
     LayoutAnimation.easeInEaseOut()
     setActive(active === index ? null : index)
   }
+
+if (!user) {
+  return (
+    <View style={{flex:1,justifyContent:"center",alignItems:"center"}}>
+      <Text>No user data. Please login again.</Text>
+    </View>
+  );
+}
 
   if(loading){
     return(

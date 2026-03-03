@@ -19,22 +19,51 @@ export default function Login({ navigation }) {
 
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
-  const [role, setRole] = useState("student"); 
+  const [role, setRole] = useState("user"); 
 
-  const handleLogin = async () => {
-    try {
-      const res = await fetch(BASE_URL);
+const handleLogin = async () => {
+  try {
+    const res = await fetch(`${BASE_URL}?action=users`);
+    const users = await res.json();
+      console.log("Users from backend:", users);
+    console.log("Entered email:", email);
 
-      if(role === "student"){
-        navigation.navigate("Student");
-      } else {
-        navigation.navigate("Admin");
-      }
+    // Find user with matching email
+   const foundUser = users.find(user =>
+  user.email?.toString().trim().toLowerCase() ===
+  email?.toString().trim().toLowerCase()
+);
 
-    } catch (error) {
-      console.log(error);
+console.log("DB Role:", `"${foundUser.role}"`);
+console.log("Selected Role:", `"${role}"`);
+
+    if (!foundUser) {
+      alert("User not found");
+      return;
     }
-  };
+
+    if (foundUser.password?.toString().trim() !== password.toString().trim()) {
+  alert("Incorrect password");
+  return;
+}
+
+    if (foundUser.role?.toString().trim() !== role.toString().trim()) {
+      alert("Role mismatch");
+      return;
+    }
+
+    // SUCCESS LOGIN
+    if (role === "user") {
+      navigation.navigate("Student", { user: foundUser });
+    } else {
+      navigation.navigate("Admin", { user: foundUser });
+    }
+
+  } catch (error) {
+    console.log(error);
+    alert("Something went wrong");
+  }
+};
 
   return (
      <KeyboardAvoidingView
@@ -59,7 +88,7 @@ export default function Login({ navigation }) {
           placeholderTextColor="#aaa"
           style={styles.input}
           value={email}
-          onChangeText={setEmail}
+          onChangeText={(text)=>(setEmail(text.trim()))}
           keyboardType="email-address"
         />
 
@@ -79,7 +108,7 @@ export default function Login({ navigation }) {
             style={{ color: "#fff" }}
             onValueChange={(itemValue) => setRole(itemValue)}
           >
-            <Picker.Item label="Student" value="student" />
+            <Picker.Item label="Student" value="user" />
             <Picker.Item label="Admin" value="admin" />
           </Picker>
         </View>

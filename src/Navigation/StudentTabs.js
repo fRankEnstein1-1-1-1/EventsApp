@@ -5,7 +5,11 @@ import { Ionicons } from "@expo/vector-icons";
 const Tab  = createBottomTabNavigator();
 
 
-function StudentTabs(){
+function StudentTabs({route}){
+
+
+   const user = route?.params?.user;
+
     return <Tab.Navigator screenOptions={({ route }) => ({
             headerShown: false,
     
@@ -38,8 +42,8 @@ function StudentTabs(){
               marginBottom: 6,
             },
           })} >
-        <Tab.Screen name = "studenthome" component={StudentHome}/>
-        <Tab.Screen name = "registered" component={StudentRegistered}/>
+        <Tab.Screen name = "studenthome" component={StudentHome} initialParams={{user}}/>
+        <Tab.Screen name = "registered" component={StudentRegistered} initialParams={{user}}/>
     </Tab.Navigator>
 }
 export default StudentTabs;
