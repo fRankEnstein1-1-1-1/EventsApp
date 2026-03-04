@@ -33,21 +33,8 @@ export default function StudentHome({route}){
     fetchEvents()
     loadRegisteredEvents()
   },[])
-
-const loadRegisteredEvents = async () => {
-  try {
-    const data = await AsyncStorage.getItem(
-      `registeredEvents_${user.email}`
-    );
-    if (data) {
-      setRegisteredEvents(JSON.parse(data));
-    }
-  } catch (err) {
-    console.log("AsyncStorage load error", err);
-  }
-};
-
-  const fetchEvents = async ()=>{
+  
+ const fetchEvents = async ()=>{
 
     try{
       setLoading(true)
@@ -69,6 +56,21 @@ const loadRegisteredEvents = async () => {
     }
 
   }
+
+const loadRegisteredEvents = async () => {
+  try {
+    const data = await AsyncStorage.getItem(
+      `registeredEvents_${user.email}`
+    );
+    if (data) {
+      setRegisteredEvents(JSON.parse(data));
+    }
+  } catch (err) {
+    console.log("AsyncStorage load error", err);
+  }
+};
+
+ 
 
 const registerEvent = async (eventId) => {
 
