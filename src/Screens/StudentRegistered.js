@@ -4,7 +4,8 @@ import {
   Text,
   ScrollView,
   StyleSheet,
-  ActivityIndicator
+  ActivityIndicator,
+  RefreshControl
 } from "react-native"
 import { LinearGradient } from "expo-linear-gradient";
 import BASE_URL from "../Api/Api"
@@ -12,8 +13,9 @@ const API=BASE_URL
 
 export default function StudentRegistered({route}){
 const user = route?.params?.user;
-  const [events,setEvents] = useState([])
-  const [loading,setLoading] = useState(true)
+  const [events,setEvents] = useState([]);
+  const [loading,setLoading] = useState(true);
+  const [refreshing, setRefreshing] = useState(false);
 
 useEffect(() => {
   if (!user) return;
@@ -38,9 +40,14 @@ useEffect(() => {
       console.log(err)
     }finally{
       setLoading(false)
+      setRefreshing(false)  
     }
   }
 
+   const onRefresh = () => {
+    setRefreshing(true);
+    fetchRegistered();
+  };
   if(loading){
     return(
       <View style={styles.center}>
@@ -54,7 +61,11 @@ useEffect(() => {
     colors={["#0f172a", "#111827", "#0b1120"]}
     style={{ flex: 1 }}
   >
-    <ScrollView contentContainerStyle={styles.container}>
+    <ScrollView contentContainerStyle={styles.container}
+    refreshControl={
+            <RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor="#fff" />
+          }
+    >
 
       <Text style={styles.heading}>My Registered Events</Text>
 

@@ -85,7 +85,8 @@ const registerEvent = async (eventId) => {
       body: JSON.stringify({
         type: "registerEvent",
         eventId,
-        email: user.email   
+        email: user.email  ,
+        name : user.name 
       })
     });
 
